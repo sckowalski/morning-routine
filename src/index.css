@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ahead: #22c55e;
+  --color-ahead-dim: #166534;
+  --color-behind: #ef4444;
+  --color-behind-dim: #991b1b;
+  --color-pb-gold: #eab308;
+  --color-pb-gold-dim: #854d0e;
+  --color-neutral: #3b82f6;
+  --color-neutral-dim: #1e40af;
+  --color-surface: #1e293b;
+  --color-surface-raised: #334155;
+  --color-surface-overlay: #475569;
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
