@@ -30,7 +30,7 @@ export function computeStepStats(runs: Run[], steps: RoutineStep[]): StepStats[]
   return steps.map((step) => {
     const durations: number[] = []
     for (const run of completedRuns) {
-      const split = run.splits.find((s) => s.stepId === step.id)
+      const split = run.splits.find((s) => s.stepId === step.id && !s.skipped)
       if (split) durations.push(split.duration)
     }
 

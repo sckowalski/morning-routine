@@ -19,6 +19,7 @@ export interface Split {
   endTime: string;
   duration: number;
   deltaFromBest?: number;
+  skipped?: boolean;
 }
 
 export interface Run {

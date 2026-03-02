@@ -4,6 +4,7 @@ interface RunControlsProps {
   status: RunStatus
   allStepsCompleted: boolean
   onComplete: () => void
+  onSkip: () => void
   onFinish: () => void
   onPause: () => void
   onResume: () => void
@@ -14,6 +15,7 @@ export function RunControls({
   status,
   allStepsCompleted,
   onComplete,
+  onSkip,
   onFinish,
   onPause,
   onResume,
@@ -63,13 +65,22 @@ export function RunControls({
       >
         Complete Step
       </button>
-      <button
-        onClick={onPause}
-        className="w-full py-3 rounded-2xl border border-white/5 bg-surface-raised text-slate-400
-          text-sm font-medium active:scale-[0.97] transition-all duration-200"
-      >
-        Pause
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={onSkip}
+          className="flex-1 py-3 rounded-2xl border border-white/5 bg-surface-raised text-slate-400
+            text-sm font-medium active:scale-[0.97] transition-all duration-200"
+        >
+          Skip
+        </button>
+        <button
+          onClick={onPause}
+          className="flex-1 py-3 rounded-2xl border border-white/5 bg-surface-raised text-slate-400
+            text-sm font-medium active:scale-[0.97] transition-all duration-200"
+        >
+          Pause
+        </button>
+      </div>
     </div>
   )
 }

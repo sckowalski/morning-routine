@@ -47,6 +47,7 @@ export function calculateXP(
     }
     // Check for individual split PBs
     for (const split of run.splits) {
+      if (split.skipped) continue
       const bestSplit = previousBest.splits[split.stepId]
       if (bestSplit && split.duration < bestSplit) {
         xp += 50

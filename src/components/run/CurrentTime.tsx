@@ -8,7 +8,20 @@ function formatClock(): string {
   })
 }
 
-export function CurrentTime() {
+function formatDate(): string {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+interface CurrentTimeProps {
+  showDate?: boolean
+  size?: 'default' | 'large'
+}
+
+export function CurrentTime({ showDate, size = 'default' }: CurrentTimeProps) {
   const [time, setTime] = useState(formatClock)
 
   useEffect(() => {
@@ -18,9 +31,18 @@ export function CurrentTime() {
 
   return (
     <div className="text-center mb-1">
-      <div className="font-heading text-lg font-medium tabular-nums text-stone-400">
+      <div className={`font-heading font-medium tabular-nums ${
+        size === 'large'
+          ? 'text-4xl font-bold text-stone-100'
+          : 'text-lg text-stone-400'
+      }`}>
         {time}
       </div>
+      {showDate && (
+        <div className="text-sm text-slate-500 mt-1">
+          {formatDate()}
+        </div>
+      )}
     </div>
   )
 }

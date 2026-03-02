@@ -27,7 +27,7 @@ export function RunSummary() {
   const stepMap = new Map(routine.steps.map((s) => [s.id, s]))
 
   return (
-    <div className="min-h-dvh bg-[#161210] text-stone-200 flex flex-col p-4 pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-dvh bg-[#161210] text-stone-200 flex flex-col px-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-[env(safe-area-inset-bottom)]">
       <div className="relative flex flex-col flex-1 animate-fade-in">
         {/* Header */}
         <div className="text-center mb-6 pt-4">
@@ -70,7 +70,7 @@ export function RunSummary() {
               if (!step) return null
 
               const bestSplitMs = pb?.splits[split.stepId]
-              const isNewBestSplit = bestSplitMs != null && split.duration <= bestSplitMs
+              const isNewBestSplit = !split.skipped && bestSplitMs != null && split.duration <= bestSplitMs
 
               return (
                 <div key={split.stepId} className="animate-slide-up" style={{ animationDelay: `${i * 0.05}s` }}>
@@ -79,6 +79,7 @@ export function RunSummary() {
                     durationMs={split.duration}
                     bestMs={bestSplitMs}
                     isNewBest={isNewBestSplit}
+                    skipped={split.skipped}
                   />
                 </div>
               )

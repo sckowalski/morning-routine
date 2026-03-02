@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRunStore } from '../stores/useRunStore'
+import { useAppStore } from '../stores/useAppStore'
 import { useRoutine } from '../hooks/useRoutine'
 import { usePersonalBests } from '../hooks/usePersonalBests'
 import { useTimer } from '../hooks/useTimer'
@@ -9,12 +10,14 @@ import { getProgress, updateProgress } from '../db/progress'
 import { calculateXP, levelFromXP } from '../lib/xp'
 import { generateId } from '../lib/ids'
 import { todayDateString } from '../lib/time'
+import { startRunNotification, updateRunNotification, stopRunNotification } from '../lib/notification'
 import { CurrentTime } from '../components/run/CurrentTime'
 import { TimerDisplay } from '../components/run/TimerDisplay'
 import { CurrentStep } from '../components/run/CurrentStep'
 import { StepSidebar } from '../components/run/StepSidebar'
 import { ProgressBar } from '../components/run/ProgressBar'
 import { RunControls } from '../components/run/RunControls'
+import { ConfirmDialog } from '../components/shared/ConfirmDialog'
 import type { Run } from '../types'
 
 export function ActiveRun() {
@@ -29,6 +32,7 @@ export function ActiveRun() {
   const stepAccumulatedMs = useRunStore((s) => s.stepAccumulatedMs)
   const startRun = useRunStore((s) => s.startRun)
   const completeStep = useRunStore((s) => s.completeStep)
+  const skipStep = useRunStore((s) => s.skipStep)
   const selectStep = useRunStore((s) => s.selectStep)
   const pause = useRunStore((s) => s.pause)
   const resume = useRunStore((s) => s.resume)
@@ -36,6 +40,7 @@ export function ActiveRun() {
   const finish = useRunStore((s) => s.finish)
   const reset = useRunStore((s) => s.reset)
   const pb = usePersonalBests(routine?.id)
+  const showConfirm = useAppStore((s) => s.showConfirm)
   const { elapsedMs, stepElapsedMs } = useTimer()
 
   // Start the run when component mounts (if idle)
@@ -46,6 +51,19 @@ export function ActiveRun() {
       startRun(id, routine.id, sortedSteps)
     }
   }, [status, routine, startRun])
+
+  // Update notification when active step changes (also handles initial start)
+  useEffect(() => {
+    if (status !== 'running' || !activeStepId || !routine) return
+    const step = steps.find((s) => s.id === activeStepId)
+    if (!step) return
+
+    if (completedStepIds.length === 0) {
+      startRunNotification(routine.name, step.icon)
+    } else {
+      updateRunNotification(step.name, step.icon, completedStepIds.length, steps.length)
+    }
+  }, [activeStepId, status, steps, completedStepIds.length, routine])
 
   // Redirect if no routine
   useEffect(() => {
@@ -60,7 +78,12 @@ export function ActiveRun() {
     completeStep()
   }
 
+  const handleSkip = () => {
+    skipStep()
+  }
+
   const handleFinish = async () => {
+    stopRunNotification()
     const { splits: allSplits, totalTimeMs } = finish()
 
     // Save the run
@@ -99,6 +122,7 @@ export function ActiveRun() {
     if (!routinePB || totalTimeMs < routinePB.totalTime) {
       const splitBests: Record<string, number> = routinePB ? { ...routinePB.splits } : {}
       for (const s of allSplits) {
+        if (s.skipped) continue
         if (!splitBests[s.stepId] || s.duration < splitBests[s.stepId]) {
           splitBests[s.stepId] = s.duration
         }
@@ -112,6 +136,7 @@ export function ActiveRun() {
       // Still update individual split bests
       const splitBests = { ...routinePB.splits }
       for (const s of allSplits) {
+        if (s.skipped) continue
         if (!splitBests[s.stepId] || s.duration < splitBests[s.stepId]) {
           splitBests[s.stepId] = s.duration
         }
@@ -132,7 +157,8 @@ export function ActiveRun() {
     navigate(`/run/summary/${run.id}`, { replace: true })
   }
 
-  const handleAbandon = async () => {
+  const doAbandon = async () => {
+    stopRunNotification()
     abandon()
 
     const run: Run = {
@@ -152,6 +178,14 @@ export function ActiveRun() {
     navigate('/', { replace: true })
   }
 
+  const handleAbandon = () => {
+    showConfirm({
+      title: 'Abandon Run?',
+      message: 'Your progress will be saved as an incomplete run. Are you sure?',
+      onConfirm: doAbandon,
+    })
+  }
+
   if (routine === undefined || status === 'idle') {
     return (
       <div className="min-h-dvh bg-[#161210] flex items-center justify-center">
@@ -163,7 +197,7 @@ export function ActiveRun() {
   const activeStep = steps.find((s) => s.id === activeStepId)
 
   return (
-    <div className="min-h-dvh bg-[#161210] text-stone-200 flex flex-col p-4 pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-dvh bg-[#161210] text-stone-200 flex flex-col px-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-[env(safe-area-inset-bottom)]">
 
       <div className="relative flex flex-col flex-1">
         {/* Progress */}
@@ -188,8 +222,8 @@ export function ActiveRun() {
 
         {/* Current time + Total timer */}
         <div className="mb-4">
-          <CurrentTime />
-          <TimerDisplay elapsedMs={elapsedMs} label="Total" />
+          <CurrentTime showDate size="large" />
+          <TimerDisplay elapsedMs={elapsedMs} label="Total" size="small" />
         </div>
 
         {/* Current step */}
@@ -199,6 +233,7 @@ export function ActiveRun() {
               step={activeStep}
               stepElapsedMs={stepElapsedMs}
               bestSplitMs={pb?.splits[activeStep.id]}
+              onComplete={handleComplete}
             />
           )}
 
@@ -219,6 +254,7 @@ export function ActiveRun() {
             status={status}
             allStepsCompleted={allStepsCompleted}
             onComplete={handleComplete}
+            onSkip={handleSkip}
             onFinish={handleFinish}
             onPause={pause}
             onResume={resume}
@@ -226,6 +262,7 @@ export function ActiveRun() {
           />
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   )
 }

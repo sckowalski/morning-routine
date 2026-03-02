@@ -10,6 +10,7 @@ interface RunState {
   steps: RoutineStep[]
   activeStepId: string | null
   completedStepIds: string[]
+  skippedStepIds: string[]
   splits: Split[]
   stepAccumulatedMs: Record<string, number>
 
@@ -23,6 +24,7 @@ interface RunState {
   // Actions
   startRun: (runId: string, routineId: string, steps: RoutineStep[]) => void
   completeStep: () => Split | null
+  skipStep: () => Split | null
   selectStep: (stepId: string) => void
   pause: () => void
   resume: () => void
@@ -38,6 +40,7 @@ const initialState = {
   steps: [] as RoutineStep[],
   activeStepId: null as string | null,
   completedStepIds: [] as string[],
+  skippedStepIds: [] as string[],
   splits: [] as Split[],
   stepAccumulatedMs: {} as Record<string, number>,
   runStartTime: null as number | null,
@@ -59,6 +62,7 @@ export const useRunStore = create<RunState>((set, get) => ({
       steps,
       activeStepId: steps.length > 0 ? steps[0].id : null,
       completedStepIds: [],
+      skippedStepIds: [],
       splits: [],
       stepAccumulatedMs: {},
       runStartTime: now,
@@ -124,6 +128,44 @@ export const useRunStore = create<RunState>((set, get) => ({
       stepAccumulatedMs: {
         ...state.stepAccumulatedMs,
         [state.activeStepId]: 0, // reset for completed step
+      },
+    })
+
+    return split
+  },
+
+  skipStep: () => {
+    const state = get()
+    if (state.status !== 'running' || !state.activeStepId) return null
+
+    const now = performance.now()
+
+    const split: Split = {
+      stepId: state.activeStepId,
+      startTime: new Date().toISOString(),
+      endTime: new Date().toISOString(),
+      duration: 0,
+      skipped: true,
+    }
+
+    const newCompleted = [...state.completedStepIds, state.activeStepId]
+    const newSkipped = [...state.skippedStepIds, state.activeStepId]
+
+    // Find next uncompleted step
+    const nextStep = state.steps.find(
+      (s) => !newCompleted.includes(s.id)
+    )
+
+    set({
+      splits: [...state.splits, split],
+      completedStepIds: newCompleted,
+      skippedStepIds: newSkipped,
+      activeStepId: nextStep?.id ?? null,
+      stepStartTime: nextStep ? now : null,
+      stepPausedMs: 0,
+      stepAccumulatedMs: {
+        ...state.stepAccumulatedMs,
+        [state.activeStepId]: 0,
       },
     })
 
