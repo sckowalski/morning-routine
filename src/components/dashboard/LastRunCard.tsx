@@ -13,20 +13,20 @@ export function LastRunCard({ run, pbTotalTime }: LastRunCardProps) {
     : undefined
 
   return (
-    <div className="bg-surface-raised rounded-2xl p-4">
-      <h3 className="text-xs text-slate-400 uppercase tracking-wider mb-2">Last Run</h3>
+    <div className="card px-4 py-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+      <h3 className="text-xs text-slate-500 font-medium tracking-wide mb-2">Last Run</h3>
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-2xl font-mono font-bold tabular-nums">
+          <div className="font-heading text-2xl font-bold tabular-nums text-slate-200">
             {run.totalTime != null ? formatTime(run.totalTime) : '--:--'}
           </div>
-          <div className="text-sm text-slate-400">
+          <div className="text-xs text-slate-500 mt-1">
             {formatDate(run.startTime)} at {formatTimeOfDay(run.startTime)}
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-1.5">
           {!run.completed && (
-            <span className="text-xs text-behind font-medium">Abandoned</span>
+            <span className="text-[10px] font-medium text-behind/80">Abandoned</span>
           )}
           {delta != null && <DeltaBadge deltaMs={delta} />}
         </div>

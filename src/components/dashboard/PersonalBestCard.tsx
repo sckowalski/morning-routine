@@ -7,13 +7,14 @@ interface PersonalBestCardProps {
 
 export function PersonalBestCard({ pb }: PersonalBestCardProps) {
   return (
-    <div className="bg-surface-raised rounded-2xl p-4">
-      <h3 className="text-xs text-slate-400 uppercase tracking-wider mb-2">Personal Best</h3>
+    <div className="card relative overflow-hidden px-4 py-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-pb-gold/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+      <h3 className="text-xs text-pb-gold/60 font-medium tracking-wide mb-2">Personal Best</h3>
       <div className="flex items-center justify-between">
-        <div className="text-2xl font-mono font-bold tabular-nums text-pb-gold">
+        <div className="font-heading text-3xl font-bold tabular-nums text-pb-gold">
           {formatTime(pb.totalTime)}
         </div>
-        <div className="text-sm text-slate-400">
+        <div className="text-xs text-slate-500">
           {formatDate(pb.date)}
         </div>
       </div>

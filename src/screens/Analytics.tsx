@@ -27,7 +27,7 @@ export function Analytics() {
   const trendData = useMemo(() => computeTrendData(filteredRuns), [filteredRuns])
 
   if (routine === undefined) {
-    return <div className="text-center py-8 text-slate-400">Loading...</div>
+    return <div className="text-center py-12 text-slate-500 animate-pulse-glow">Loading...</div>
   }
 
   if (!routine) {
@@ -41,8 +41,8 @@ export function Analytics() {
   }
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Analytics</h2>
+    <div className="animate-fade-in">
+      <h2 className="font-heading text-xl font-bold mb-4">Analytics</h2>
       <DateRangeSelector dateRange={dateRange} onChange={setDateRange} />
       <SummaryCards stats={summaryStats} />
       <TrendChart data={trendData} />

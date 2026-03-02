@@ -8,8 +8,12 @@ interface TimerDisplayProps {
 export function TimerDisplay({ elapsedMs, label }: TimerDisplayProps) {
   return (
     <div className="text-center">
-      {label && <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">{label}</div>}
-      <div className="text-5xl font-mono font-bold tabular-nums tracking-tight">
+      {label && (
+        <div className="text-xs text-slate-500 font-medium tracking-wide mb-1">
+          {label}
+        </div>
+      )}
+      <div className="font-heading text-5xl font-bold tabular-nums text-slate-100">
         {formatTime(elapsedMs)}
       </div>
     </div>

@@ -9,6 +9,7 @@ import { getProgress, updateProgress } from '../db/progress'
 import { calculateXP, levelFromXP } from '../lib/xp'
 import { generateId } from '../lib/ids'
 import { todayDateString } from '../lib/time'
+import { CurrentTime } from '../components/run/CurrentTime'
 import { TimerDisplay } from '../components/run/TimerDisplay'
 import { CurrentStep } from '../components/run/CurrentStep'
 import { StepSidebar } from '../components/run/StepSidebar'
@@ -25,6 +26,7 @@ export function ActiveRun() {
   const activeStepId = useRunStore((s) => s.activeStepId)
   const completedStepIds = useRunStore((s) => s.completedStepIds)
   const splits = useRunStore((s) => s.splits)
+  const stepAccumulatedMs = useRunStore((s) => s.stepAccumulatedMs)
   const startRun = useRunStore((s) => s.startRun)
   const completeStep = useRunStore((s) => s.completeStep)
   const selectStep = useRunStore((s) => s.selectStep)
@@ -152,8 +154,8 @@ export function ActiveRun() {
 
   if (routine === undefined || status === 'idle') {
     return (
-      <div className="min-h-dvh bg-slate-900 flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-dvh bg-[#161210] flex items-center justify-center">
+        <div className="text-sm text-slate-500 animate-pulse-glow">Loading...</div>
       </div>
     )
   }
@@ -161,60 +163,68 @@ export function ActiveRun() {
   const activeStep = steps.find((s) => s.id === activeStepId)
 
   return (
-    <div className="min-h-dvh bg-slate-900 text-slate-100 flex flex-col p-4 pb-[env(safe-area-inset-bottom)]">
-      {/* Progress */}
-      <div className="mb-2">
-        <ProgressBar totalSteps={steps.length} completedSteps={completedStepIds.length} />
-        <div className="text-xs text-slate-400 text-center mt-1">
-          {completedStepIds.length} of {steps.length} completed
-        </div>
-      </div>
+    <div className="min-h-dvh bg-[#161210] text-stone-200 flex flex-col p-4 pb-[env(safe-area-inset-bottom)]">
 
-      {/* Step Sidebar */}
-      <div className="mb-3">
+      <div className="relative flex flex-col flex-1">
+        {/* Progress */}
+        <div className="mb-3">
+          <ProgressBar totalSteps={steps.length} completedSteps={completedStepIds.length} />
+          <div className="text-xs text-slate-500 text-center mt-1.5">
+            {completedStepIds.length} of {steps.length} completed
+          </div>
+        </div>
+
+        {/* Step Drawer (fixed overlay) */}
         <StepSidebar
           steps={steps}
           activeStepId={activeStepId}
           completedStepIds={completedStepIds}
+          splits={splits}
+          stepElapsedMs={stepElapsedMs}
+          stepAccumulatedMs={stepAccumulatedMs}
           onSelectStep={selectStep}
+          onCompleteStep={handleComplete}
         />
-      </div>
 
-      {/* Total timer */}
-      <div className="mb-4">
-        <TimerDisplay elapsedMs={elapsedMs} label="Total" />
-      </div>
+        {/* Current time + Total timer */}
+        <div className="mb-4">
+          <CurrentTime />
+          <TimerDisplay elapsedMs={elapsedMs} label="Total" />
+        </div>
 
-      {/* Current step */}
-      <div className="flex-1 flex flex-col justify-center">
-        {activeStep && (
-          <CurrentStep
-            step={activeStep}
-            stepElapsedMs={stepElapsedMs}
-            bestSplitMs={pb?.splits[activeStep.id]}
+        {/* Current step */}
+        <div className="flex-1 flex flex-col justify-center">
+          {activeStep && (
+            <CurrentStep
+              step={activeStep}
+              stepElapsedMs={stepElapsedMs}
+              bestSplitMs={pb?.splits[activeStep.id]}
+            />
+          )}
+
+          {allStepsCompleted && (
+            <div className="text-center py-8 animate-scale-in">
+              <div className="text-6xl mb-4">🏁</div>
+              <h2 className="font-heading text-2xl font-bold text-pb-gold">
+                All Steps Done!
+              </h2>
+              <p className="text-slate-500 mt-2 text-sm">Tap below to finish your run</p>
+            </div>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div className="mt-4">
+          <RunControls
+            status={status}
+            allStepsCompleted={allStepsCompleted}
+            onComplete={handleComplete}
+            onFinish={handleFinish}
+            onPause={pause}
+            onResume={resume}
+            onAbandon={handleAbandon}
           />
-        )}
-
-        {allStepsCompleted && (
-          <div className="text-center py-8">
-            <div className="text-5xl mb-3">🏁</div>
-            <h2 className="text-2xl font-bold">All Steps Done!</h2>
-            <p className="text-slate-400 mt-1">Tap below to finish your run</p>
-          </div>
-        )}
-      </div>
-
-      {/* Controls */}
-      <div className="mt-4">
-        <RunControls
-          status={status}
-          allStepsCompleted={allStepsCompleted}
-          onComplete={handleComplete}
-          onFinish={handleFinish}
-          onPause={pause}
-          onResume={resume}
-          onAbandon={handleAbandon}
-        />
+        </div>
       </div>
     </div>
   )

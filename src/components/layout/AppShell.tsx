@@ -4,11 +4,14 @@ import { ConfirmDialog } from '../shared/ConfirmDialog'
 
 export function AppShell() {
   return (
-    <div className="min-h-dvh flex flex-col">
-      <header className="bg-surface border-b border-slate-700 px-4 py-3">
-        <h1 className="text-lg font-bold tracking-tight">Morning Speedrun</h1>
+    <div className="min-h-dvh flex flex-col bg-[#161210]">
+      <header className="relative bg-surface/80 backdrop-blur-md border-b border-white/5 px-5 py-3.5">
+        <h1 className="font-heading text-base font-bold tracking-wide text-neutral">
+          Morning Speedrun
+        </h1>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-neutral/20 to-transparent" />
       </header>
-      <main className="flex-1 overflow-y-auto pb-20 px-4 py-4">
+      <main className="flex-1 overflow-y-auto pb-24 px-4 py-5">
         <Outlet />
       </main>
       <BottomNav />

@@ -24,13 +24,15 @@ export function RunControls({
       <div className="flex flex-col gap-3">
         <button
           onClick={onResume}
-          className="w-full py-4 rounded-2xl bg-neutral text-white text-xl font-bold active:scale-95 transition-transform"
+          className="w-full py-4 rounded-2xl font-heading text-lg font-bold tracking-wide
+            bg-neutral text-white active:scale-[0.97] transition-all duration-200"
         >
           Resume
         </button>
         <button
           onClick={onAbandon}
-          className="w-full py-3 rounded-2xl bg-surface-raised text-slate-300 text-base active:scale-95 transition-transform"
+          className="w-full py-3 rounded-2xl border border-white/5 bg-surface-raised text-slate-400
+            text-sm font-medium active:scale-[0.97] transition-all duration-200"
         >
           Abandon Run
         </button>
@@ -40,10 +42,11 @@ export function RunControls({
 
   if (allStepsCompleted) {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 animate-scale-in">
         <button
           onClick={onFinish}
-          className="w-full py-5 rounded-2xl bg-pb-gold text-slate-900 text-xl font-bold active:scale-95 transition-transform"
+          className="w-full py-5 rounded-2xl font-heading text-xl font-bold tracking-wide
+            bg-pb-gold text-slate-900 active:scale-[0.97] transition-all duration-200"
         >
           Finish Run!
         </button>
@@ -55,13 +58,15 @@ export function RunControls({
     <div className="flex flex-col gap-3">
       <button
         onClick={onComplete}
-        className="w-full py-5 rounded-2xl bg-neutral text-white text-xl font-bold active:scale-95 transition-transform"
+        className="w-full py-5 rounded-2xl font-heading text-lg font-bold tracking-wide
+          bg-neutral text-white active:scale-[0.97] transition-all duration-200"
       >
         Complete Step
       </button>
       <button
         onClick={onPause}
-        className="w-full py-3 rounded-2xl bg-surface-raised text-slate-300 text-base active:scale-95 transition-transform"
+        className="w-full py-3 rounded-2xl border border-white/5 bg-surface-raised text-slate-400
+          text-sm font-medium active:scale-[0.97] transition-all duration-200"
       >
         Pause
       </button>

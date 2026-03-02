@@ -13,9 +13,9 @@ export function StepList({ steps, onMoveUp, onMoveDown, onRemove }: StepListProp
 
   if (sorted.length === 0) {
     return (
-      <div className="text-center py-8 text-slate-400">
-        <div className="text-3xl mb-2">📝</div>
-        <p>No steps yet. Add your first step below!</p>
+      <div className="text-center py-10 text-slate-500">
+        <div className="text-4xl mb-3">📝</div>
+        <p className="text-sm">No steps yet. Add your first step below!</p>
       </div>
     )
   }
@@ -23,15 +23,16 @@ export function StepList({ steps, onMoveUp, onMoveDown, onRemove }: StepListProp
   return (
     <div className="flex flex-col gap-2">
       {sorted.map((step, i) => (
-        <StepItem
-          key={step.id}
-          step={step}
-          index={i}
-          total={sorted.length}
-          onMoveUp={() => onMoveUp(step.id)}
-          onMoveDown={() => onMoveDown(step.id)}
-          onRemove={() => onRemove(step.id)}
-        />
+        <div key={step.id} className="animate-slide-up" style={{ animationDelay: `${i * 0.03}s` }}>
+          <StepItem
+            step={step}
+            index={i}
+            total={sorted.length}
+            onMoveUp={() => onMoveUp(step.id)}
+            onMoveDown={() => onMoveDown(step.id)}
+            onRemove={() => onRemove(step.id)}
+          />
+        </div>
       ))}
     </div>
   )

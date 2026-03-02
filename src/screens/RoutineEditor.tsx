@@ -16,7 +16,7 @@ export function RoutineEditor() {
   }, [routine])
 
   if (!routine) {
-    return <div className="text-center py-8 text-slate-400">Loading...</div>
+    return <div className="text-center py-12 text-slate-500 animate-pulse-glow">Loading...</div>
   }
 
   const handleAddStep = async (name: string, icon: string) => {
@@ -36,11 +36,11 @@ export function RoutineEditor() {
   }
 
   return (
-    <div>
-      <div className="mb-4">
-        <h2 className="text-xl font-bold">{routine.name}</h2>
-        <p className="text-sm text-slate-400">
-          {routine.steps.length} step{routine.steps.length !== 1 ? 's' : ''}
+    <div className="animate-fade-in">
+      <div className="mb-5">
+        <h2 className="font-heading text-xl font-bold">{routine.name}</h2>
+        <p className="text-sm text-slate-500 mt-0.5">
+          {routine.steps.length} step{routine.steps.length !== 1 ? 's' : ''} configured
         </p>
       </div>
 

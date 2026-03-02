@@ -10,12 +10,12 @@ export function DeltaBadge({ deltaMs }: DeltaBadgeProps) {
 
   return (
     <span
-      className={`text-sm font-mono font-medium px-2 py-0.5 rounded-full ${
+      className={`font-heading text-xs font-medium px-2 py-0.5 rounded-full tabular-nums ${
         isAhead
-          ? 'bg-ahead/20 text-ahead'
+          ? 'bg-ahead/15 text-ahead border border-ahead/20'
           : isBehind
-            ? 'bg-behind/20 text-behind'
-            : 'bg-slate-600 text-slate-300'
+            ? 'bg-behind/15 text-behind border border-behind/20'
+            : 'bg-white/5 text-slate-400 border border-white/10'
       }`}
     >
       {formatDelta(deltaMs)}

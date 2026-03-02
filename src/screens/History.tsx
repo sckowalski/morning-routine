@@ -13,7 +13,7 @@ export function History() {
   const showConfirm = useAppStore((s) => s.showConfirm)
 
   if (routine === undefined) {
-    return <div className="text-center py-8 text-slate-400">Loading...</div>
+    return <div className="text-center py-12 text-slate-500 animate-pulse-glow">Loading...</div>
   }
 
   if (runs.length === 0) {
@@ -35,16 +35,17 @@ export function History() {
   }
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Run History</h2>
+    <div className="animate-fade-in">
+      <h2 className="font-heading text-xl font-bold mb-4">Run History</h2>
       <div className="flex flex-col gap-2">
-        {runs.map((run) => (
-          <RunCard
-            key={run.id}
-            run={run}
-            pbTotalTime={pb?.totalTime}
-            onDelete={() => handleDelete(run.id)}
-          />
+        {runs.map((run, i) => (
+          <div key={run.id} className="animate-slide-up" style={{ animationDelay: `${i * 0.03}s` }}>
+            <RunCard
+              run={run}
+              pbTotalTime={pb?.totalTime}
+              onDelete={() => handleDelete(run.id)}
+            />
+          </div>
         ))}
       </div>
     </div>

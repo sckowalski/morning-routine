@@ -9,16 +9,28 @@ export function SummaryCards({ stats }: SummaryCardsProps) {
   const cards = [
     { label: 'Total Runs', value: stats.totalRuns.toString() },
     { label: 'Avg Time', value: stats.completedRuns > 0 ? formatTimeShort(stats.averageTimeMs) : '--' },
-    { label: 'Best Time', value: stats.completedRuns > 0 ? formatTimeShort(stats.bestTimeMs) : '--' },
+    { label: 'Best Time', value: stats.completedRuns > 0 ? formatTimeShort(stats.bestTimeMs) : '--', highlight: true },
     { label: 'Completion', value: stats.totalRuns > 0 ? `${Math.round(stats.completionRate * 100)}%` : '--' },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-2 mb-4">
-      {cards.map((card) => (
-        <div key={card.label} className="bg-surface-raised rounded-xl px-3 py-3 text-center">
-          <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">{card.label}</div>
-          <div className="text-xl font-bold font-mono tabular-nums">{card.value}</div>
+    <div className="grid grid-cols-2 gap-2 mb-5">
+      {cards.map((card, i) => (
+        <div
+          key={card.label}
+          className={`card border px-3 py-3.5 text-center animate-slide-up ${
+            card.highlight ? 'border-pb-gold/10' : 'border-white/5'
+          }`}
+          style={{ animationDelay: `${i * 0.05}s` }}
+        >
+          <div className="text-[10px] text-slate-500 font-medium tracking-wide mb-1.5">
+            {card.label}
+          </div>
+          <div className={`font-heading text-xl font-bold tabular-nums ${
+            card.highlight && stats.completedRuns > 0 ? 'text-pb-gold' : ''
+          }`}>
+            {card.value}
+          </div>
         </div>
       ))}
     </div>

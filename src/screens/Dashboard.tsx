@@ -12,7 +12,7 @@ export function Dashboard() {
   const pb = usePersonalBests(routine?.id)
 
   if (routine === undefined) {
-    return <div className="text-center py-8 text-slate-400">Loading...</div>
+    return <div className="text-center py-12 text-slate-500 animate-pulse-glow">Loading...</div>
   }
 
   if (!routine || routine.steps.length === 0) {
@@ -28,11 +28,13 @@ export function Dashboard() {
   const lastRun = runs.length > 0 ? runs[0] : null
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5 animate-fade-in">
       <div>
-        <h2 className="text-xl font-bold mb-1">{routine.name}</h2>
-        <p className="text-sm text-slate-400">
-          {routine.steps.length} step{routine.steps.length !== 1 ? 's' : ''}
+        <h2 className="font-heading text-xl font-bold text-slate-100">
+          {routine.name}
+        </h2>
+        <p className="text-sm text-slate-500 mt-0.5">
+          {routine.steps.length} step{routine.steps.length !== 1 ? 's' : ''} configured
         </p>
       </div>
 
@@ -45,8 +47,10 @@ export function Dashboard() {
       )}
 
       {!lastRun && (
-        <div className="text-center py-4 text-slate-500 text-sm">
-          No runs yet — hit the button to start your first speedrun!
+        <div className="card px-4 py-6 text-center">
+          <p className="text-slate-500 text-sm">
+            No runs yet — hit the button to start your first speedrun!
+          </p>
         </div>
       )}
     </div>

@@ -14,18 +14,18 @@ export function RunCard({ run, pbTotalTime, onDelete }: RunCardProps) {
     : undefined
 
   return (
-    <div className="bg-surface-raised rounded-xl px-4 py-3 flex items-center justify-between">
+    <div className="card px-4 py-3 flex items-center justify-between border border-white/5">
       <div>
-        <div className="font-mono font-bold tabular-nums text-lg">
+        <div className="font-heading text-lg font-bold tabular-nums">
           {run.totalTime != null ? formatTime(run.totalTime) : '--:--'}
         </div>
-        <div className="text-sm text-slate-400">
+        <div className="text-xs text-slate-500 mt-0.5">
           {formatDate(run.startTime)} at {formatTimeOfDay(run.startTime)}
         </div>
       </div>
       <div className="flex items-center gap-2">
         {!run.completed && (
-          <span className="text-xs bg-behind/20 text-behind px-2 py-0.5 rounded-full">
+          <span className="font-heading text-[9px] bg-behind/10 text-behind/80 px-2 py-0.5 rounded-full border border-behind/15">
             Abandoned
           </span>
         )}
@@ -34,7 +34,8 @@ export function RunCard({ run, pbTotalTime, onDelete }: RunCardProps) {
           <button
             type="button"
             onClick={onDelete}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-behind hover:bg-behind/10 transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-behind hover:bg-behind/10
+              transition-all duration-200"
             aria-label="Delete run"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">

@@ -36,17 +36,19 @@ export function AddStepForm({ onAdd }: AddStepFormProps) {
   const isPresetSelected = !customEmoji && EMOJI_SUGGESTIONS.includes(icon)
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface-raised rounded-2xl p-4">
-      <div className="mb-3">
-        <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Icon</label>
-        <div className="flex flex-wrap gap-2 items-center">
+    <form onSubmit={handleSubmit} className="card border border-white/5 p-4">
+      <div className="mb-4">
+        <label className="text-xs text-slate-500 font-medium tracking-wide block mb-2">Icon</label>
+        <div className="flex flex-wrap gap-1.5 items-center">
           {EMOJI_SUGGESTIONS.map((emoji) => (
             <button
               key={emoji}
               type="button"
               onClick={() => handlePresetClick(emoji)}
-              className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-colors ${
-                isPresetSelected && icon === emoji ? 'bg-neutral/30 ring-2 ring-neutral' : 'bg-surface hover:bg-surface-overlay'
+              className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all duration-150 ${
+                isPresetSelected && icon === emoji
+                  ? 'bg-neutral/15 ring-2 ring-neutral shadow-[0_0_10px_rgba(246,177,122,0.15)]'
+                  : 'bg-white/5 hover:bg-white/10'
               }`}
             >
               {emoji}
@@ -58,8 +60,10 @@ export function AddStepForm({ onAdd }: AddStepFormProps) {
             onChange={(e) => handleCustomChange(e.target.value)}
             placeholder="✨"
             maxLength={4}
-            className={`w-14 h-10 rounded-lg text-xl text-center bg-surface outline-none transition-colors ${
-              customEmoji ? 'ring-2 ring-neutral bg-neutral/30' : 'hover:bg-surface-overlay'
+            className={`w-12 h-9 rounded-lg text-lg text-center bg-white/5 outline-none transition-all duration-150 ${
+              customEmoji
+                ? 'ring-2 ring-neutral bg-neutral/15 shadow-[0_0_10px_rgba(246,177,122,0.15)]'
+                : 'hover:bg-white/10'
             }`}
           />
         </div>
@@ -71,12 +75,16 @@ export function AddStepForm({ onAdd }: AddStepFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Step name (e.g., Shower)"
-          className="flex-1 bg-surface rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 outline-none focus:ring-2 focus:ring-neutral"
+          className="flex-1 bg-white/5 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-600 outline-none
+            focus:ring-2 focus:ring-neutral/50 transition-all duration-200 text-sm"
         />
         <button
           type="submit"
           disabled={!name.trim()}
-          className="px-5 py-3 rounded-xl bg-neutral text-white font-medium disabled:opacity-40 active:scale-95 transition-transform"
+          className="px-5 py-3 rounded-xl font-heading text-sm font-bold
+            bg-neutral text-white
+            disabled:opacity-30
+            active:scale-95 transition-all duration-200"
         >
           Add
         </button>
