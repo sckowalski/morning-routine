@@ -33,7 +33,9 @@ export function useExportImport() {
     const a = document.createElement('a')
     a.href = url
     a.download = `morning-speedrun-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }, [])
 
