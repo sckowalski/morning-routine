@@ -18,6 +18,10 @@ export async function getCompletedRunsByRoutine(routineId: string): Promise<Run[
   return runs.filter((r) => r.completed)
 }
 
+export async function deleteRun(id: string): Promise<void> {
+  await db.runs.delete(id)
+}
+
 export async function deleteAllRuns(): Promise<void> {
   await db.runs.clear()
 }

@@ -11,7 +11,7 @@ import { generateId } from '../lib/ids'
 import { todayDateString } from '../lib/time'
 import { TimerDisplay } from '../components/run/TimerDisplay'
 import { CurrentStep } from '../components/run/CurrentStep'
-import { NextStepPreview } from '../components/run/NextStepPreview'
+import { StepSidebar } from '../components/run/StepSidebar'
 import { ProgressBar } from '../components/run/ProgressBar'
 import { RunControls } from '../components/run/RunControls'
 import type { Run } from '../types'
@@ -22,10 +22,12 @@ export function ActiveRun() {
   const status = useRunStore((s) => s.status)
   const runId = useRunStore((s) => s.runId)
   const steps = useRunStore((s) => s.steps)
-  const currentStepIndex = useRunStore((s) => s.currentStepIndex)
+  const activeStepId = useRunStore((s) => s.activeStepId)
+  const completedStepIds = useRunStore((s) => s.completedStepIds)
   const splits = useRunStore((s) => s.splits)
   const startRun = useRunStore((s) => s.startRun)
-  const nextStep = useRunStore((s) => s.nextStep)
+  const completeStep = useRunStore((s) => s.completeStep)
+  const selectStep = useRunStore((s) => s.selectStep)
   const pause = useRunStore((s) => s.pause)
   const resume = useRunStore((s) => s.resume)
   const abandon = useRunStore((s) => s.abandon)
@@ -50,85 +52,82 @@ export function ActiveRun() {
     }
   }, [routine, navigate])
 
-  const handleNext = async () => {
-    const isLastStep = currentStepIndex >= steps.length - 1
+  const allStepsCompleted = activeStepId === null && completedStepIds.length === steps.length && steps.length > 0
 
-    if (isLastStep) {
-      // Capture the last split then finish
-      const lastSplit = nextStep()
-      const { splits: allSplits, totalTimeMs } = finish()
-      const finalSplits = lastSplit ? [...splits, lastSplit] : allSplits
+  const handleComplete = () => {
+    completeStep()
+  }
 
-      // Save the run
-      const progress = await getProgress()
-      const previousBest = routine ? progress.personalBests[routine.id] : undefined
+  const handleFinish = async () => {
+    const { splits: allSplits, totalTimeMs } = finish()
 
-      // Compute deltas
-      const splitsWithDelta = finalSplits.map((s) => ({
-        ...s,
-        deltaFromBest: previousBest?.splits[s.stepId] != null
-          ? s.duration - previousBest.splits[s.stepId]
-          : undefined,
-      }))
+    // Save the run
+    const progress = await getProgress()
+    const previousBest = routine ? progress.personalBests[routine.id] : undefined
 
-      const run: Run = {
-        id: runId!,
-        routineId: routine!.id,
-        date: todayDateString(),
-        startTime: new Date(Date.now() - totalTimeMs).toISOString(),
-        endTime: new Date().toISOString(),
-        totalTime: totalTimeMs,
-        splits: splitsWithDelta,
-        completed: true,
-        xpEarned: 0,
-      }
+    // Compute deltas
+    const splitsWithDelta = allSplits.map((s) => ({
+      ...s,
+      deltaFromBest: previousBest?.splits[s.stepId] != null
+        ? s.duration - previousBest.splits[s.stepId]
+        : undefined,
+    }))
 
-      const xp = calculateXP(run, previousBest, progress)
-      run.xpEarned = xp
-
-      await saveRun(run)
-
-      // Update personal bests
-      const newBests = { ...progress.personalBests }
-      const routinePB = newBests[routine!.id]
-
-      if (!routinePB || totalTimeMs < routinePB.totalTime) {
-        const splitBests: Record<string, number> = routinePB ? { ...routinePB.splits } : {}
-        for (const s of finalSplits) {
-          if (!splitBests[s.stepId] || s.duration < splitBests[s.stepId]) {
-            splitBests[s.stepId] = s.duration
-          }
-        }
-        newBests[routine!.id] = {
-          totalTime: totalTimeMs,
-          splits: splitBests,
-          date: new Date().toISOString(),
-        }
-      } else {
-        // Still update individual split bests
-        const splitBests = { ...routinePB.splits }
-        for (const s of finalSplits) {
-          if (!splitBests[s.stepId] || s.duration < splitBests[s.stepId]) {
-            splitBests[s.stepId] = s.duration
-          }
-        }
-        newBests[routine!.id] = { ...routinePB, splits: splitBests }
-      }
-
-      const newTotalXP = progress.totalXP + xp
-      await updateProgress({
-        totalXP: newTotalXP,
-        level: levelFromXP(newTotalXP),
-        totalRuns: progress.totalRuns + 1,
-        totalTimeSpent: progress.totalTimeSpent + totalTimeMs,
-        personalBests: newBests,
-      })
-
-      reset()
-      navigate(`/run/summary/${run.id}`, { replace: true })
-    } else {
-      nextStep()
+    const run: Run = {
+      id: runId!,
+      routineId: routine!.id,
+      date: todayDateString(),
+      startTime: new Date(Date.now() - totalTimeMs).toISOString(),
+      endTime: new Date().toISOString(),
+      totalTime: totalTimeMs,
+      splits: splitsWithDelta,
+      completed: true,
+      xpEarned: 0,
     }
+
+    const xp = calculateXP(run, previousBest, progress)
+    run.xpEarned = xp
+
+    await saveRun(run)
+
+    // Update personal bests
+    const newBests = { ...progress.personalBests }
+    const routinePB = newBests[routine!.id]
+
+    if (!routinePB || totalTimeMs < routinePB.totalTime) {
+      const splitBests: Record<string, number> = routinePB ? { ...routinePB.splits } : {}
+      for (const s of allSplits) {
+        if (!splitBests[s.stepId] || s.duration < splitBests[s.stepId]) {
+          splitBests[s.stepId] = s.duration
+        }
+      }
+      newBests[routine!.id] = {
+        totalTime: totalTimeMs,
+        splits: splitBests,
+        date: new Date().toISOString(),
+      }
+    } else {
+      // Still update individual split bests
+      const splitBests = { ...routinePB.splits }
+      for (const s of allSplits) {
+        if (!splitBests[s.stepId] || s.duration < splitBests[s.stepId]) {
+          splitBests[s.stepId] = s.duration
+        }
+      }
+      newBests[routine!.id] = { ...routinePB, splits: splitBests }
+    }
+
+    const newTotalXP = progress.totalXP + xp
+    await updateProgress({
+      totalXP: newTotalXP,
+      level: levelFromXP(newTotalXP),
+      totalRuns: progress.totalRuns + 1,
+      totalTimeSpent: progress.totalTimeSpent + totalTimeMs,
+      personalBests: newBests,
+    })
+
+    reset()
+    navigate(`/run/summary/${run.id}`, { replace: true })
   }
 
   const handleAbandon = async () => {
@@ -159,18 +158,26 @@ export function ActiveRun() {
     )
   }
 
-  const currentStep = steps[currentStepIndex]
-  const nextStepData = steps[currentStepIndex + 1]
-  const isLastStep = currentStepIndex >= steps.length - 1
+  const activeStep = steps.find((s) => s.id === activeStepId)
 
   return (
     <div className="min-h-dvh bg-slate-900 text-slate-100 flex flex-col p-4 pb-[env(safe-area-inset-bottom)]">
       {/* Progress */}
       <div className="mb-2">
-        <ProgressBar totalSteps={steps.length} completedSteps={currentStepIndex} />
+        <ProgressBar totalSteps={steps.length} completedSteps={completedStepIds.length} />
         <div className="text-xs text-slate-400 text-center mt-1">
-          Step {currentStepIndex + 1} of {steps.length}
+          {completedStepIds.length} of {steps.length} completed
         </div>
+      </div>
+
+      {/* Step Sidebar */}
+      <div className="mb-3">
+        <StepSidebar
+          steps={steps}
+          activeStepId={activeStepId}
+          completedStepIds={completedStepIds}
+          onSelectStep={selectStep}
+        />
       </div>
 
       {/* Total timer */}
@@ -180,23 +187,30 @@ export function ActiveRun() {
 
       {/* Current step */}
       <div className="flex-1 flex flex-col justify-center">
-        {currentStep && (
+        {activeStep && (
           <CurrentStep
-            step={currentStep}
+            step={activeStep}
             stepElapsedMs={stepElapsedMs}
-            bestSplitMs={pb?.splits[currentStep.id]}
+            bestSplitMs={pb?.splits[activeStep.id]}
           />
         )}
 
-        {nextStepData && <NextStepPreview step={nextStepData} />}
+        {allStepsCompleted && (
+          <div className="text-center py-8">
+            <div className="text-5xl mb-3">🏁</div>
+            <h2 className="text-2xl font-bold">All Steps Done!</h2>
+            <p className="text-slate-400 mt-1">Tap below to finish your run</p>
+          </div>
+        )}
       </div>
 
       {/* Controls */}
       <div className="mt-4">
         <RunControls
           status={status}
-          isLastStep={isLastStep}
-          onNext={handleNext}
+          allStepsCompleted={allStepsCompleted}
+          onComplete={handleComplete}
+          onFinish={handleFinish}
           onPause={pause}
           onResume={resume}
           onAbandon={handleAbandon}

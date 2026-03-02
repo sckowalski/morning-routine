@@ -13,6 +13,8 @@ export function useTimer() {
   const stepStartTime = useRunStore((s) => s.stepStartTime)
   const totalPausedMs = useRunStore((s) => s.totalPausedMs)
   const stepPausedMs = useRunStore((s) => s.stepPausedMs)
+  const activeStepId = useRunStore((s) => s.activeStepId)
+  const stepAccumulatedMs = useRunStore((s) => s.stepAccumulatedMs)
 
   useEffect(() => {
     if (status !== 'running') {
@@ -28,8 +30,9 @@ export function useTimer() {
         if (runStartTime != null) {
           setElapsedMs(now - runStartTime - totalPausedMs)
         }
-        if (stepStartTime != null) {
-          setStepElapsedMs(now - stepStartTime - stepPausedMs)
+        if (stepStartTime != null && activeStepId != null) {
+          const accumulated = stepAccumulatedMs[activeStepId] || 0
+          setStepElapsedMs(accumulated + (now - stepStartTime - stepPausedMs))
         }
       }
       rafRef.current = requestAnimationFrame(tick)
@@ -37,7 +40,7 @@ export function useTimer() {
 
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [status, runStartTime, stepStartTime, totalPausedMs, stepPausedMs])
+  }, [status, runStartTime, stepStartTime, totalPausedMs, stepPausedMs, activeStepId, stepAccumulatedMs])
 
   return { elapsedMs, stepElapsedMs }
 }

@@ -2,8 +2,9 @@ import type { RunStatus } from '../../stores/useRunStore'
 
 interface RunControlsProps {
   status: RunStatus
-  isLastStep: boolean
-  onNext: () => void
+  allStepsCompleted: boolean
+  onComplete: () => void
+  onFinish: () => void
   onPause: () => void
   onResume: () => void
   onAbandon: () => void
@@ -11,8 +12,9 @@ interface RunControlsProps {
 
 export function RunControls({
   status,
-  isLastStep,
-  onNext,
+  allStepsCompleted,
+  onComplete,
+  onFinish,
   onPause,
   onResume,
   onAbandon,
@@ -36,13 +38,26 @@ export function RunControls({
     )
   }
 
+  if (allStepsCompleted) {
+    return (
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={onFinish}
+          className="w-full py-5 rounded-2xl bg-pb-gold text-slate-900 text-xl font-bold active:scale-95 transition-transform"
+        >
+          Finish Run!
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <button
-        onClick={onNext}
+        onClick={onComplete}
         className="w-full py-5 rounded-2xl bg-neutral text-white text-xl font-bold active:scale-95 transition-transform"
       >
-        {isLastStep ? 'Finish!' : 'Next Step'}
+        Complete Step
       </button>
       <button
         onClick={onPause}

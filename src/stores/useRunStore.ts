@@ -8,8 +8,10 @@ interface RunState {
   runId: string | null
   routineId: string | null
   steps: RoutineStep[]
-  currentStepIndex: number
+  activeStepId: string | null
+  completedStepIds: string[]
   splits: Split[]
+  stepAccumulatedMs: Record<string, number>
 
   // Timing (performance.now based)
   runStartTime: number | null      // performance.now() when run started
@@ -20,7 +22,8 @@ interface RunState {
 
   // Actions
   startRun: (runId: string, routineId: string, steps: RoutineStep[]) => void
-  nextStep: () => Split | null
+  completeStep: () => Split | null
+  selectStep: (stepId: string) => void
   pause: () => void
   resume: () => void
   abandon: () => void
@@ -33,8 +36,10 @@ const initialState = {
   runId: null as string | null,
   routineId: null as string | null,
   steps: [] as RoutineStep[],
-  currentStepIndex: 0,
+  activeStepId: null as string | null,
+  completedStepIds: [] as string[],
   splits: [] as Split[],
+  stepAccumulatedMs: {} as Record<string, number>,
   runStartTime: null as number | null,
   stepStartTime: null as number | null,
   pauseStartTime: null as number | null,
@@ -52,8 +57,10 @@ export const useRunStore = create<RunState>((set, get) => ({
       runId,
       routineId,
       steps,
-      currentStepIndex: 0,
+      activeStepId: steps.length > 0 ? steps[0].id : null,
+      completedStepIds: [],
       splits: [],
+      stepAccumulatedMs: {},
       runStartTime: now,
       stepStartTime: now,
       pauseStartTime: null,
@@ -62,29 +69,62 @@ export const useRunStore = create<RunState>((set, get) => ({
     })
   },
 
-  nextStep: () => {
+  selectStep: (stepId) => {
     const state = get()
-    if (state.status !== 'running' || !state.stepStartTime) return null
+    if (state.status !== 'running' || !state.activeStepId || state.activeStepId === stepId) return
+    if (state.completedStepIds.includes(stepId)) return
 
     const now = performance.now()
-    const stepDurationMs = now - state.stepStartTime - state.stepPausedMs
-    const step = state.steps[state.currentStepIndex]
+    const currentElapsed = state.stepStartTime != null
+      ? now - state.stepStartTime - state.stepPausedMs
+      : 0
+    const currentId = state.activeStepId
+    const prevAccumulated = state.stepAccumulatedMs[currentId] || 0
+
+    set({
+      activeStepId: stepId,
+      stepStartTime: now,
+      stepPausedMs: 0,
+      stepAccumulatedMs: {
+        ...state.stepAccumulatedMs,
+        [currentId]: prevAccumulated + currentElapsed,
+      },
+    })
+  },
+
+  completeStep: () => {
+    const state = get()
+    if (state.status !== 'running' || !state.activeStepId || !state.stepStartTime) return null
+
+    const now = performance.now()
+    const currentElapsed = now - state.stepStartTime - state.stepPausedMs
+    const accumulated = state.stepAccumulatedMs[state.activeStepId] || 0
+    const totalDuration = accumulated + currentElapsed
 
     const split: Split = {
-      stepId: step.id,
-      startTime: new Date(Date.now() - stepDurationMs).toISOString(),
+      stepId: state.activeStepId,
+      startTime: new Date(Date.now() - totalDuration).toISOString(),
       endTime: new Date().toISOString(),
-      duration: stepDurationMs,
+      duration: totalDuration,
     }
 
-    const nextIndex = state.currentStepIndex + 1
-    const isLastStep = nextIndex >= state.steps.length
+    const newCompleted = [...state.completedStepIds, state.activeStepId]
+
+    // Find next uncompleted step
+    const nextStep = state.steps.find(
+      (s) => !newCompleted.includes(s.id)
+    )
 
     set({
       splits: [...state.splits, split],
-      currentStepIndex: nextIndex,
-      stepStartTime: isLastStep ? null : now,
+      completedStepIds: newCompleted,
+      activeStepId: nextStep?.id ?? null,
+      stepStartTime: nextStep ? now : null,
       stepPausedMs: 0,
+      stepAccumulatedMs: {
+        ...state.stepAccumulatedMs,
+        [state.activeStepId]: 0, // reset for completed step
+      },
     })
 
     return split

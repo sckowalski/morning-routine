@@ -9,6 +9,7 @@ interface AddStepFormProps {
 export function AddStepForm({ onAdd }: AddStepFormProps) {
   const [name, setName] = useState('')
   const [icon, setIcon] = useState('🚿')
+  const [customEmoji, setCustomEmoji] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,25 +18,50 @@ export function AddStepForm({ onAdd }: AddStepFormProps) {
     onAdd(trimmed, icon)
     setName('')
     setIcon('🚿')
+    setCustomEmoji('')
   }
+
+  const handlePresetClick = (emoji: string) => {
+    setIcon(emoji)
+    setCustomEmoji('')
+  }
+
+  const handleCustomChange = (value: string) => {
+    setCustomEmoji(value)
+    if (value) {
+      setIcon(value)
+    }
+  }
+
+  const isPresetSelected = !customEmoji && EMOJI_SUGGESTIONS.includes(icon)
 
   return (
     <form onSubmit={handleSubmit} className="bg-surface-raised rounded-2xl p-4">
       <div className="mb-3">
         <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Icon</label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {EMOJI_SUGGESTIONS.map((emoji) => (
             <button
               key={emoji}
               type="button"
-              onClick={() => setIcon(emoji)}
+              onClick={() => handlePresetClick(emoji)}
               className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-colors ${
-                icon === emoji ? 'bg-neutral/30 ring-2 ring-neutral' : 'bg-surface hover:bg-surface-overlay'
+                isPresetSelected && icon === emoji ? 'bg-neutral/30 ring-2 ring-neutral' : 'bg-surface hover:bg-surface-overlay'
               }`}
             >
               {emoji}
             </button>
           ))}
+          <input
+            type="text"
+            value={customEmoji}
+            onChange={(e) => handleCustomChange(e.target.value)}
+            placeholder="✨"
+            maxLength={4}
+            className={`w-14 h-10 rounded-lg text-xl text-center bg-surface outline-none transition-colors ${
+              customEmoji ? 'ring-2 ring-neutral bg-neutral/30' : 'hover:bg-surface-overlay'
+            }`}
+          />
         </div>
       </div>
 
