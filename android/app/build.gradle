@@ -8,16 +8,6 @@ def getVersionCode = { ->
 android {
     namespace = "com.sckowalski.morningspeedrun"
     compileSdk = rootProject.ext.compileSdkVersion
-
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("KEYSTORE_PATH") ?: "${rootProject.projectDir}/../morning-speedrun.keystore")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "morningspeedrun"
-            keyAlias System.getenv("KEY_ALIAS") ?: "morning-speedrun"
-            keyPassword System.getenv("KEY_PASSWORD") ?: "morningspeedrun"
-        }
-    }
-
     defaultConfig {
         applicationId "com.sckowalski.morningspeedrun"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -32,11 +22,7 @@ android {
         }
     }
     buildTypes {
-        debug {
-            signingConfig signingConfigs.release
-        }
         release {
-            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
