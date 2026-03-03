@@ -61,8 +61,9 @@ export function ActiveRun() {
     if (!step) return
 
     if (completedStepIds.length === 0) {
-      requestNotificationPermission().then(() => {
-        startRunNotification(routine.name, step.icon)
+      requestNotificationPermission().then((granted) => {
+        console.log('[ActiveRun] Notification permission granted:', granted)
+        if (granted) startRunNotification(routine.name, step.icon)
       })
     } else {
       updateRunNotification(step.name, step.icon, completedStepIds.length, steps.length)

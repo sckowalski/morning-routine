@@ -1,5 +1,8 @@
 import { Capacitor } from '@capacitor/core'
 
+// Android FOREGROUND_SERVICE_TYPE_SPECIAL_USE = 0x40000000
+const SERVICE_TYPE_SPECIAL_USE = 1073741824
+
 async function getPlugin() {
   console.log('[Notification] getPlugin — platform:', Capacitor.getPlatform(), 'isNative:', Capacitor.isNativePlatform())
   if (!Capacitor.isNativePlatform()) {
@@ -47,14 +50,27 @@ export async function startRunNotification(routineName: string, stepIcon: string
   if (!plugin) return
 
   try {
+    // Create notification channel explicitly before starting service
+    console.log('[Notification] Creating notification channel...')
+    await plugin.createNotificationChannel({
+      id: 'default',
+      name: 'Morning Speedrun',
+      description: 'Timer notifications during runs',
+      importance: 3,
+    })
+    console.log('[Notification] Notification channel created')
+
     const opts = {
       id: 1,
       title: `${stepIcon} ${routineName}`,
       body: 'Starting run...',
       smallIcon: 'ic_stat_timer',
+      notificationChannelId: 'default',
+      serviceType: SERVICE_TYPE_SPECIAL_USE,
+      silent: true,
     }
     console.log('[Notification] startForegroundService with:', JSON.stringify(opts))
-    await plugin.startForegroundService(opts)
+    await plugin.startForegroundService(opts as never)
     console.log('[Notification] startForegroundService succeeded')
   } catch (e) {
     console.error('[Notification] startForegroundService FAILED:', e)
@@ -77,12 +93,15 @@ export async function updateRunNotification(
       title: `${stepIcon} ${stepName}`,
       body: `Step ${completed + 1} of ${total}`,
       smallIcon: 'ic_stat_timer',
+      notificationChannelId: 'default',
+      serviceType: SERVICE_TYPE_SPECIAL_USE,
+      silent: true,
     }
-    console.log('[Notification] startForegroundService (update) with:', JSON.stringify(opts))
-    await plugin.startForegroundService(opts)
-    console.log('[Notification] startForegroundService (update) succeeded')
+    console.log('[Notification] updateForegroundService with:', JSON.stringify(opts))
+    await plugin.updateForegroundService(opts as never)
+    console.log('[Notification] updateForegroundService succeeded')
   } catch (e) {
-    console.error('[Notification] startForegroundService (update) FAILED:', e)
+    console.error('[Notification] updateForegroundService FAILED:', e)
   }
 }
 
