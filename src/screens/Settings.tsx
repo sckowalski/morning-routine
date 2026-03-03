@@ -7,6 +7,7 @@ export function Settings() {
   const showConfirm = useAppStore((s) => s.showConfirm)
   const fileRef = useRef<HTMLInputElement>(null)
   const [importStatus, setImportStatus] = useState<string | null>(null)
+  const [exportStatus, setExportStatus] = useState<string | null>(null)
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -41,13 +42,32 @@ export function Settings() {
       <div className="flex flex-col gap-3">
         {/* Export */}
         <button
-          onClick={exportData}
+          onClick={async () => {
+            const result = await exportData()
+            if (result === 'shared' || result === 'downloaded' || result === 'cancelled') return
+            if (result === 'failed') {
+              setExportStatus('Export failed — check console for details')
+            } else {
+              setExportStatus(result)
+            }
+            setTimeout(() => setExportStatus(null), 4000)
+          }}
           className="w-full text-left card border border-white/5 px-4 py-4 active:scale-[0.98] transition-all duration-200
             hover:border-neutral/15"
         >
           <div className="font-medium text-sm">Export Data</div>
           <div className="text-xs text-slate-500 mt-0.5">Download all your data as a JSON file</div>
         </button>
+
+        {exportStatus && (
+          <div className={`text-xs px-4 py-2.5 rounded-xl border animate-scale-in ${
+            exportStatus.includes('failed')
+              ? 'bg-behind/10 text-behind border-behind/15'
+              : 'bg-ahead/10 text-ahead border-ahead/15'
+          }`}>
+            {exportStatus}
+          </div>
+        )}
 
         {/* Import */}
         <label className="w-full text-left card border border-white/5 px-4 py-4 cursor-pointer active:scale-[0.98]

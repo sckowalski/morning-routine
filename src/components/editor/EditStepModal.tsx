@@ -43,6 +43,7 @@ export function EditStepModal({ name: initialName, icon: initialIcon, onSave, on
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
             placeholder="Step name"
             maxLength={50}
             className="flex-1 bg-white/5 rounded-xl px-4 py-3 text-sm outline-none

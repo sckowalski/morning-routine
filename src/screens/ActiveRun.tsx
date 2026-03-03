@@ -325,6 +325,17 @@ export function ActiveRun() {
           )}
         </div>
 
+        {/* Undo Toast */}
+        {undoInfo && (
+          <div className="mt-4">
+            <UndoToast
+              stepIcon={undoInfo.stepIcon}
+              stepName={undoInfo.stepName}
+              onUndo={handleUndo}
+            />
+          </div>
+        )}
+
         {/* Controls */}
         <div className="mt-4">
           <RunControls
@@ -339,13 +350,6 @@ export function ActiveRun() {
           />
         </div>
       </div>
-      {undoInfo && (
-        <UndoToast
-          stepIcon={undoInfo.stepIcon}
-          stepName={undoInfo.stepName}
-          onUndo={handleUndo}
-        />
-      )}
       <ConfirmDialog />
     </div>
   )

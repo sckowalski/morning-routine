@@ -1,10 +1,11 @@
 import { useCallback } from 'react'
+import { Capacitor } from '@capacitor/core'
 import { db } from '../db'
 import type { ExportData } from '../types'
 import { validateImportData } from '../lib/validate'
 
 export function useExportImport() {
-  const exportData = useCallback(async () => {
+  const exportData = useCallback(async (): Promise<string> => {
     const routines = await db.routines.toArray()
     const runs = await db.runs.toArray()
     const progress = await db.progress.get('user')
@@ -29,32 +30,80 @@ export function useExportImport() {
     const jsonString = JSON.stringify(data, null, 2)
     const fileName = `morning-speedrun-${new Date().toISOString().split('T')[0]}.json`
 
-    // Try Web Share API first (works on Android)
+    // Tier 1: Web Share API (works on Android share sheet)
+    console.log('[Export] Tier 1: Trying Web Share API...')
     if (navigator.share && navigator.canShare) {
       const file = new File([jsonString], fileName, { type: 'application/json' })
       const shareData = { files: [file] }
       if (navigator.canShare(shareData)) {
         try {
           await navigator.share(shareData)
-          return
+          console.log('[Export] Tier 1: Web Share succeeded')
+          return 'shared'
         } catch (e) {
-          // User cancelled — return silently
-          if (e instanceof Error && e.name === 'AbortError') return
-          // Fall through to blob download
+          if (e instanceof Error && e.name === 'AbortError') {
+            console.log('[Export] Tier 1: User cancelled share')
+            return 'cancelled'
+          }
+          console.warn('[Export] Tier 1: Web Share failed:', e)
         }
+      } else {
+        console.log('[Export] Tier 1: canShare returned false')
       }
+    } else {
+      console.log('[Export] Tier 1: Web Share API not available')
     }
 
-    // Fallback: blob download (desktop)
-    const blob = new Blob([jsonString], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    // Tier 2: Capacitor Filesystem (native file write to Documents)
+    if (Capacitor.isNativePlatform()) {
+      console.log('[Export] Tier 2: Trying Capacitor Filesystem...')
+      try {
+        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem')
+        await Filesystem.writeFile({
+          path: fileName,
+          data: jsonString,
+          directory: Directory.Documents,
+          encoding: Encoding.UTF8,
+        })
+        console.log('[Export] Tier 2: Saved to Documents/' + fileName)
+        return `Saved to Documents/${fileName}`
+      } catch (e) {
+        console.warn('[Export] Tier 2: Capacitor Filesystem failed:', e)
+      }
+    } else {
+      console.log('[Export] Tier 2: Not native platform, skipping Filesystem')
+    }
+
+    // Tier 3: Blob download (desktop browsers)
+    console.log('[Export] Tier 3: Trying blob download...')
+    try {
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      console.log('[Export] Tier 3: Blob download triggered')
+      return 'downloaded'
+    } catch (e) {
+      console.warn('[Export] Tier 3: Blob download failed:', e)
+    }
+
+    // Tier 4: Clipboard fallback
+    console.log('[Export] Tier 4: Trying clipboard fallback...')
+    try {
+      await navigator.clipboard.writeText(jsonString)
+      console.log('[Export] Tier 4: Copied to clipboard')
+      return 'Copied to clipboard'
+    } catch (e) {
+      console.error('[Export] Tier 4: Clipboard failed:', e)
+    }
+
+    console.error('[Export] All tiers failed')
+    return 'failed'
   }, [])
 
   const importData = useCallback(async (file: File): Promise<{ success: boolean; error?: string }> => {

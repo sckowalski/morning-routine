@@ -12,6 +12,7 @@
     "@capacitor/android": "^8.1.0",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
+    "@capacitor/filesystem": "^8.1.2",
     "@capawesome-team/capacitor-android-foreground-service": "^8.0.1",
     "dexie": "^4.3.0",
     "dexie-react-hooks": "^4.2.0",

@@ -6,7 +6,7 @@ interface UndoToastProps {
 
 export function UndoToast({ stepIcon, stepName, onUndo }: UndoToastProps) {
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-[60] flex items-center justify-between gap-3 bg-surface-raised border border-white/10 rounded-xl px-4 py-3 shadow-lg animate-slide-up">
+    <div className="flex items-center justify-between gap-3 bg-surface-raised border border-white/10 rounded-xl px-4 py-3 shadow-lg animate-slide-up">
       <span className="text-sm text-slate-300 truncate">
         {stepIcon} {stepName} completed
       </span>

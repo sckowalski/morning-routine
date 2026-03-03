@@ -1,14 +1,29 @@
 apply plugin: 'com.android.application'
 
+def getVersionCode = { ->
+    def count = 'git rev-list --count HEAD'.execute().text.trim()
+    return count.isInteger() ? count.toInteger() : 1
+}
+
 android {
     namespace = "com.sckowalski.morningspeedrun"
     compileSdk = rootProject.ext.compileSdkVersion
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("KEYSTORE_PATH") ?: "${rootProject.projectDir}/../morning-speedrun.keystore")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "morningspeedrun"
+            keyAlias System.getenv("KEY_ALIAS") ?: "morning-speedrun"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "morningspeedrun"
+        }
+    }
+
     defaultConfig {
         applicationId "com.sckowalski.morningspeedrun"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode getVersionCode()
+        versionName "1.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -17,7 +32,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+        }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
