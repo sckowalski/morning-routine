@@ -1,11 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRoutine } from '../hooks/useRoutine'
-import { createRoutine, addStep, removeStep, reorderStep } from '../db/routines'
+import { createRoutine, addStep, removeStep, reorderStep, updateStep } from '../db/routines'
 import { StepList } from '../components/editor/StepList'
 import { AddStepForm } from '../components/editor/AddStepForm'
+import { EditStepModal } from '../components/editor/EditStepModal'
 
 export function RoutineEditor() {
   const routine = useRoutine()
+  const [editingStepId, setEditingStepId] = useState<string | null>(null)
 
   // Auto-create a default routine if none exists
   useEffect(() => {
@@ -35,6 +37,20 @@ export function RoutineEditor() {
     await reorderStep(routine.id, stepId, 'down')
   }
 
+  const handleEditStep = (stepId: string) => {
+    setEditingStepId(stepId)
+  }
+
+  const handleSaveStep = async (name: string, icon: string) => {
+    if (!editingStepId) return
+    await updateStep(routine.id, editingStepId, { name, icon })
+    setEditingStepId(null)
+  }
+
+  const editingStep = editingStepId
+    ? routine.steps.find((s) => s.id === editingStepId)
+    : null
+
   return (
     <div className="animate-fade-in">
       <div className="mb-5">
@@ -47,6 +63,7 @@ export function RoutineEditor() {
       <div className="mb-4">
         <StepList
           steps={routine.steps}
+          onEdit={handleEditStep}
           onMoveUp={handleMoveUp}
           onMoveDown={handleMoveDown}
           onRemove={handleRemoveStep}
@@ -54,6 +71,15 @@ export function RoutineEditor() {
       </div>
 
       <AddStepForm onAdd={handleAddStep} />
+
+      {editingStep && (
+        <EditStepModal
+          name={editingStep.name}
+          icon={editingStep.icon}
+          onSave={handleSaveStep}
+          onClose={() => setEditingStepId(null)}
+        />
+      )}
     </div>
   )
 }

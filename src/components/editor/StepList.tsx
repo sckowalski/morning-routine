@@ -3,12 +3,13 @@ import { StepItem } from './StepItem'
 
 interface StepListProps {
   steps: RoutineStep[]
+  onEdit: (stepId: string) => void
   onMoveUp: (stepId: string) => void
   onMoveDown: (stepId: string) => void
   onRemove: (stepId: string) => void
 }
 
-export function StepList({ steps, onMoveUp, onMoveDown, onRemove }: StepListProps) {
+export function StepList({ steps, onEdit, onMoveUp, onMoveDown, onRemove }: StepListProps) {
   const sorted = [...steps].sort((a, b) => a.order - b.order)
 
   if (sorted.length === 0) {
@@ -28,6 +29,7 @@ export function StepList({ steps, onMoveUp, onMoveDown, onRemove }: StepListProp
             step={step}
             index={i}
             total={sorted.length}
+            onEdit={() => onEdit(step.id)}
             onMoveUp={() => onMoveUp(step.id)}
             onMoveDown={() => onMoveDown(step.id)}
             onRemove={() => onRemove(step.id)}

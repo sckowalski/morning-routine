@@ -57,7 +57,7 @@ export function Settings() {
           <input
             ref={fileRef}
             type="file"
-            accept=".json"
+            accept=".json,application/json"
             onChange={handleImport}
             className="hidden"
           />

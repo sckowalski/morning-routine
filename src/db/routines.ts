@@ -80,6 +80,24 @@ export async function reorderStep(
   })
 }
 
+export async function updateStep(
+  routineId: string,
+  stepId: string,
+  updates: { name?: string; icon?: string },
+): Promise<void> {
+  const routine = await db.routines.get(routineId)
+  if (!routine) return
+
+  const updatedSteps = routine.steps.map((s) =>
+    s.id === stepId ? { ...s, ...updates } : s,
+  )
+
+  await db.routines.update(routineId, {
+    steps: updatedSteps,
+    updatedAt: new Date().toISOString(),
+  })
+}
+
 export async function updateRoutineName(
   routineId: string,
   name: string,

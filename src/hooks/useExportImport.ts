@@ -26,13 +26,31 @@ export function useExportImport() {
       },
     }
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json',
-    })
+    const jsonString = JSON.stringify(data, null, 2)
+    const fileName = `morning-speedrun-${new Date().toISOString().split('T')[0]}.json`
+
+    // Try Web Share API first (works on Android)
+    if (navigator.share && navigator.canShare) {
+      const file = new File([jsonString], fileName, { type: 'application/json' })
+      const shareData = { files: [file] }
+      if (navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData)
+          return
+        } catch (e) {
+          // User cancelled — return silently
+          if (e instanceof Error && e.name === 'AbortError') return
+          // Fall through to blob download
+        }
+      }
+    }
+
+    // Fallback: blob download (desktop)
+    const blob = new Blob([jsonString], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `morning-speedrun-${new Date().toISOString().split('T')[0]}.json`
+    a.download = fileName
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

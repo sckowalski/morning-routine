@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRunStore } from '../stores/useRunStore'
 import { useAppStore } from '../stores/useAppStore'
@@ -10,13 +10,14 @@ import { getProgress, updateProgress } from '../db/progress'
 import { calculateXP, levelFromXP } from '../lib/xp'
 import { generateId } from '../lib/ids'
 import { todayDateString } from '../lib/time'
-import { startRunNotification, updateRunNotification, stopRunNotification } from '../lib/notification'
+import { requestNotificationPermission, startRunNotification, updateRunNotification, stopRunNotification } from '../lib/notification'
 import { CurrentTime } from '../components/run/CurrentTime'
 import { TimerDisplay } from '../components/run/TimerDisplay'
 import { CurrentStep } from '../components/run/CurrentStep'
 import { StepSidebar } from '../components/run/StepSidebar'
 import { ProgressBar } from '../components/run/ProgressBar'
 import { RunControls } from '../components/run/RunControls'
+import { UndoToast } from '../components/run/UndoToast'
 import { ConfirmDialog } from '../components/shared/ConfirmDialog'
 import type { Run } from '../types'
 
@@ -33,6 +34,7 @@ export function ActiveRun() {
   const startRun = useRunStore((s) => s.startRun)
   const completeStep = useRunStore((s) => s.completeStep)
   const skipStep = useRunStore((s) => s.skipStep)
+  const uncompleteStep = useRunStore((s) => s.uncompleteStep)
   const selectStep = useRunStore((s) => s.selectStep)
   const pause = useRunStore((s) => s.pause)
   const resume = useRunStore((s) => s.resume)
@@ -59,11 +61,22 @@ export function ActiveRun() {
     if (!step) return
 
     if (completedStepIds.length === 0) {
-      startRunNotification(routine.name, step.icon)
+      requestNotificationPermission().then(() => {
+        startRunNotification(routine.name, step.icon)
+      })
     } else {
       updateRunNotification(step.name, step.icon, completedStepIds.length, steps.length)
     }
   }, [activeStepId, status, steps, completedStepIds.length, routine])
+
+  // Clean up undo timer on unmount
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+    }
+  }, [])
 
   // Redirect if no routine
   useEffect(() => {
@@ -73,16 +86,56 @@ export function ActiveRun() {
   }, [routine, navigate])
 
   const allStepsCompleted = activeStepId === null && completedStepIds.length === steps.length && steps.length > 0
+  const autoFinishRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleFinishRef = useRef<() => void>(() => {})
+  const [undoInfo, setUndoInfo] = useState<{ stepId: string; stepName: string; stepIcon: string } | null>(null)
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showUndoToast = (stepId: string, stepName: string, stepIcon: string) => {
+    // Clear any existing undo timer
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current)
+    }
+    setUndoInfo({ stepId, stepName, stepIcon })
+    undoTimerRef.current = setTimeout(() => {
+      setUndoInfo(null)
+      undoTimerRef.current = null
+    }, 4000)
+  }
+
+  const handleUndo = () => {
+    if (!undoInfo) return
+    // Cancel auto-finish
+    if (autoFinishRef.current) {
+      clearTimeout(autoFinishRef.current)
+      autoFinishRef.current = null
+    }
+    // Cancel undo timer
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current)
+      undoTimerRef.current = null
+    }
+    uncompleteStep(undoInfo.stepId)
+    setUndoInfo(null)
+  }
 
   const handleComplete = () => {
+    const step = steps.find((s) => s.id === activeStepId)
     completeStep()
+    if (step) {
+      showUndoToast(step.id, step.name, step.icon)
+    }
   }
 
   const handleSkip = () => {
+    const step = steps.find((s) => s.id === activeStepId)
     skipStep()
+    if (step) {
+      showUndoToast(step.id, step.name, step.icon)
+    }
   }
 
-  const handleFinish = async () => {
+  const handleFinish = useCallback(async () => {
     stopRunNotification()
     const { splits: allSplits, totalTimeMs } = finish()
 
@@ -155,7 +208,31 @@ export function ActiveRun() {
 
     reset()
     navigate(`/run/summary/${run.id}`, { replace: true })
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routine, runId, finish, reset, navigate])
+
+  // Keep handleFinishRef in sync
+  handleFinishRef.current = handleFinish
+
+  // Auto-finish when all steps completed
+  useEffect(() => {
+    if (allStepsCompleted) {
+      autoFinishRef.current = setTimeout(() => {
+        setUndoInfo(null)
+        if (undoTimerRef.current) {
+          clearTimeout(undoTimerRef.current)
+          undoTimerRef.current = null
+        }
+        handleFinishRef.current()
+      }, 1500)
+    }
+    return () => {
+      if (autoFinishRef.current) {
+        clearTimeout(autoFinishRef.current)
+        autoFinishRef.current = null
+      }
+    }
+  }, [allStepsCompleted])
 
   const doAbandon = async () => {
     stopRunNotification()
@@ -243,7 +320,7 @@ export function ActiveRun() {
               <h2 className="font-heading text-2xl font-bold text-pb-gold">
                 All Steps Done!
               </h2>
-              <p className="text-slate-500 mt-2 text-sm">Tap below to finish your run</p>
+              <p className="text-slate-500 mt-2 text-sm">Finishing run...</p>
             </div>
           )}
         </div>
@@ -262,6 +339,13 @@ export function ActiveRun() {
           />
         </div>
       </div>
+      {undoInfo && (
+        <UndoToast
+          stepIcon={undoInfo.stepIcon}
+          stepName={undoInfo.stepName}
+          onUndo={handleUndo}
+        />
+      )}
       <ConfirmDialog />
     </div>
   )

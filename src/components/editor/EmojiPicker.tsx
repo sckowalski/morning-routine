@@ -27,11 +27,11 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-surface-raised rounded-t-2xl p-5 pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] max-h-[75dvh] overflow-y-auto animate-slide-up"
+        className="w-full max-w-lg bg-surface-raised rounded-t-2xl p-5 pb-[calc(env(safe-area-inset-bottom,0px)+5rem)] max-h-[85dvh] overflow-y-auto animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">

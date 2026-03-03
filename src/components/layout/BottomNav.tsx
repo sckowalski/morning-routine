@@ -10,7 +10,7 @@ const tabs = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-surface/80 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-neutral/20 to-transparent" />
       <div className="flex justify-around">
         {tabs.map((tab) => (

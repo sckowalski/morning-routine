@@ -12,6 +12,22 @@ async function getPlugin() {
   }
 }
 
+export async function requestNotificationPermission(): Promise<boolean> {
+  const plugin = await getPlugin()
+  if (!plugin) return false
+
+  try {
+    const { display } = await plugin.checkPermissions()
+    if (display === 'granted') return true
+
+    const result = await plugin.requestPermissions()
+    return result.display === 'granted'
+  } catch (e) {
+    console.error('[Notification] Failed to request permission:', e)
+    return false
+  }
+}
+
 export async function startRunNotification(routineName: string, stepIcon: string) {
   const plugin = await getPlugin()
   if (!plugin) return
@@ -24,7 +40,7 @@ export async function startRunNotification(routineName: string, stepIcon: string
       smallIcon: 'ic_stat_timer',
     })
   } catch (e) {
-    console.warn('Failed to start foreground notification:', e)
+    console.error('[Notification] Failed to start foreground notification:', e)
   }
 }
 
@@ -45,7 +61,7 @@ export async function updateRunNotification(
       smallIcon: 'ic_stat_timer',
     })
   } catch (e) {
-    console.warn('Failed to update foreground notification:', e)
+    console.error('[Notification] Failed to update foreground notification:', e)
   }
 }
 
@@ -56,6 +72,6 @@ export async function stopRunNotification() {
   try {
     await plugin.stopForegroundService()
   } catch (e) {
-    console.warn('Failed to stop foreground notification:', e)
+    console.error('[Notification] Failed to stop foreground notification:', e)
   }
 }

@@ -25,6 +25,7 @@ interface RunState {
   startRun: (runId: string, routineId: string, steps: RoutineStep[]) => void
   completeStep: () => Split | null
   skipStep: () => Split | null
+  uncompleteStep: (stepId: string) => void
   selectStep: (stepId: string) => void
   pause: () => void
   resume: () => void
@@ -170,6 +171,25 @@ export const useRunStore = create<RunState>((set, get) => ({
     })
 
     return split
+  },
+
+  uncompleteStep: (stepId) => {
+    const state = get()
+    const now = performance.now()
+
+    set({
+      status: 'running',
+      completedStepIds: state.completedStepIds.filter((id) => id !== stepId),
+      skippedStepIds: state.skippedStepIds.filter((id) => id !== stepId),
+      splits: state.splits.filter((s) => s.stepId !== stepId),
+      activeStepId: stepId,
+      stepStartTime: now,
+      stepPausedMs: 0,
+      stepAccumulatedMs: {
+        ...state.stepAccumulatedMs,
+        [stepId]: 0,
+      },
+    })
   },
 
   pause: () => {

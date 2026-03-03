@@ -6,15 +6,17 @@ Morning Speedrun is a progressive web app that gamifies your daily routine with 
 
 ## Features
 
-- **Speedrun Timer** -- High-precision timer powered by `performance.now()` with live split tracking for each step of your routine.
+- **Speedrun Timer** -- High-precision timer powered by `performance.now()` with live split tracking for each step of your routine. Auto-finishes 1.5s after the last step is completed.
 - **Personal Bests** -- Automatically tracks your best total time and best individual split times. Deltas show whether you're ahead or behind your PB in real time.
 - **Out-of-Order Steps** -- Complete steps in any order you want. Tap the step sidebar to jump between tasks as your morning demands.
+- **Undo** -- Accidentally completed a step? Tap undo within 4 seconds to revert it and keep going.
+- **In-Place Step Editing** -- Edit step names and icons directly from the routine editor without removing and re-adding.
 - **XP and Leveling** -- Earn XP for completing runs, hitting personal bests, and maintaining streaks. Level up as you build consistency.
 - **Analytics Dashboard** -- Trend charts, summary stats, per-step breakdowns, and filterable date ranges (7d / 30d / 90d / all time / custom) powered by Recharts.
 - **Run History** -- Browse and manage past runs with detailed split breakdowns and completion status.
 - **Custom Emojis** -- Assign an emoji icon to each step for quick visual identification.
-- **Import / Export** -- Back up your routines, runs, and progress as JSON. Restore on any device.
-- **PWA** -- Installable on mobile and desktop. Works offline with local IndexedDB storage.
+- **Import / Export** -- Back up your routines, runs, and progress as JSON. Uses the native share sheet on Android, direct download on desktop.
+- **PWA + Android** -- Installable as a PWA on mobile and desktop. Also available as a native Android app via Capacitor with foreground notification support during runs.
 
 ## Tech Stack
 
